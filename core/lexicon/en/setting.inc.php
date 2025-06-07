@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+
+/** @var array<array-key, array<array-key,string>|string> $_tmp */
+$_tmp = [
+    'bot_token' => 'Api ключ бота',
+    'bot_token_desc' => '',
+    'bot_username' => 'Имя бота',
+    'bot_username_desc' => '',
+    'hook_url' => 'Адрес вебхука',
+    'hook_url_desc' => '',
+    'log_active' => 'Активировать лог',
+    'log_active_desc' => '',
+];
+
+/** @var array<array-key, string> $_tmp */
+$_tmp = MXRVX\Telegram\Bot\Tools\Lexicon::flatten($_tmp, 'setting_' . MXRVX\Telegram\Bot\App::NAMESPACE);
+
+/** @var array<array-key, string> $_lang */
+if (isset($_lang)) {
+    $_lang = \array_merge($_lang, $_tmp);
+}
+
+unset($_tmp);
