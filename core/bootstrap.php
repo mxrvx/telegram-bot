@@ -34,14 +34,14 @@ require_once __DIR__ . '/deprecated.php';
 
 /** @var \modX $modx */
 if (!isset($modx)) {
-    if (\file_exists(MODX_CORE_PATH . 'model/modx/modx.class.php')) {
+    /** @psalm-suppress MissingFile */
+    if (!\class_exists(\modX::class) && \file_exists(MODX_CORE_PATH . 'model/modx/modx.class.php')) {
         require_once MODX_CORE_PATH . 'model/modx/modx.class.php';
     }
     $modx = \modX::getInstance();
     $modx->initialize();
 }
 
-
-if ($modx instanceof \modX) {
+if (isset($modx)) {
     $modx->services[MXRVX\Telegram\Bot\App::class] ??= new MXRVX\Telegram\Bot\App($modx);
 }
