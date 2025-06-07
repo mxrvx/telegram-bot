@@ -26,9 +26,6 @@
         "ext-pdo": "*",
         "ext-simplexml": "*",
         "mxrvx/autoloader": "*",
-        "php-di/slim-bridge": "^3.4.0",
-        "slim/psr7": "^1.6.0",
-        "slim/slim": "^4.14.0",
         "peppeocchi/php-cron-scheduler": "^4.0",
         "longman/telegram-bot": "*",
         "monolog/monolog": "^3.9"
