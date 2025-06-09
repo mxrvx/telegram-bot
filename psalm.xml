@@ -22,6 +22,7 @@
         <directory name="psalm-stubs" />
         <ignoreFiles>
             <directory name="vendor"/>
+            <directory name="core/src/Models/" />
         </ignoreFiles>
     </projectFiles>
     <xi:include href="psalm-stubs.xml"/>

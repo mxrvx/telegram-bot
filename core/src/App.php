@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace MXRVX\Telegram\Bot;
 
-use Longman\TelegramBot\Telegram;
-use Longman\TelegramBot\TelegramLog;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\Telegram;
+use Longman\TelegramBot\TelegramLog;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 use Monolog\Level;
+use Monolog\Logger;
+use MXRVX\Autoloader\ClassLister;
 use MXRVX\Schema\System\Settings\SchemaConfigInterface;
+use MXRVX\Telegram\Bot\Listeners\ChatMemberListener;
+use MXRVX\Telegram\Bot\Listeners\MessageListener;
 
 /** @psalm-suppress PropertyNotSetInConstructor */
 class App extends Telegram
@@ -31,6 +34,8 @@ class App extends Telegram
     public function __construct(public \modX $modx)
     {
         $this->config = Config::make($modx->config);
+        $this->loadModelsWithNamespace();
+        $this->addListenerClasses([MessageListener::class, ChatMemberListener::class]);
 
         if ((bool) $this->config->getSettingValue('log_active')) {
             $dirLog = \dirname(__DIR__) . '/logs/';
@@ -77,6 +82,16 @@ class App extends Telegram
         }
     }
 
+    /**
+     * @param class-string[] $classNames
+     */
+    public function addListenerClasses(array $classNames): void
+    {
+        foreach ($classNames as $className) {
+            $this->addListenerClass($className);
+        }
+    }
+
     public function handleListeners(?Update $update = null): ?ServerResponse
     {
         foreach ($this->listenerClasses as $class) {
@@ -96,6 +111,16 @@ class App extends Telegram
         }
     }
 
+    /**
+     * @param class-string[] $classNames
+     */
+    public function addCallbackClasses(array $classNames): void
+    {
+        foreach ($classNames as $className) {
+            $this->addCallbackClass($className);
+        }
+    }
+
     public function handleCallbacks(?Update $update = null): ?ServerResponse
     {
         foreach ($this->callbackClasses as $class) {
@@ -109,5 +134,38 @@ class App extends Telegram
         }
 
         return null;
+    }
+
+    public function loadModelsWithNamespace(): void
+    {
+        $baseNamespace = \substr(self::class, 0, (int) \strrpos(self::class, '\\'));
+        $modelNamespace = \sprintf('%s\Models\\', $baseNamespace);
+        $modelPath = MODX_CORE_PATH . 'components/' . self::NAMESPACE . '/src/Models/' . self::NAMESPACE . '/' . self::NAMESPACE . '/';
+        $modelPrefix = $this->namespaceToCamelCase(self::NAMESPACE);
+
+        /** @var array<int, class-string> $namespaceClasses */
+        $namespaceClasses = ClassLister::findByRegex('/^' . \preg_quote($modelNamespace, '/') . '(?!.*_mysql$).+$/');
+        foreach ($namespaceClasses as $namespaceClass) {
+            if (isset($this->modx->map[$namespaceClass])) {
+                continue;
+            }
+
+            $shortClassName = \substr($namespaceClass, (int) \strrpos($namespaceClass, '\\') + 1);
+            $legacyClassName = $modelPrefix . $shortClassName;
+
+            if (!isset($this->modx->map[$legacyClassName])) {
+                /** @psalm-suppress DeprecatedMethod */
+                $this->modx->loadClass($legacyClassName, $modelPath, true, false);
+            }
+
+            if (isset($this->modx->map[$legacyClassName])) {
+                $this->modx->map[$namespaceClass] = $this->modx->map[$legacyClassName];
+            }
+        }
+    }
+
+    protected function namespaceToCamelCase(string $namespace): string
+    {
+        return \lcfirst(\str_replace(' ', '', \ucwords(\str_replace('-', ' ', $namespace))));
     }
 }
