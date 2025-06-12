@@ -1,10 +1,9 @@
 #!/usr/bin/env php
 <?php
 
+/** @var \modX $modx */
+/** @var \DI\Container $container */
 /** @psalm-suppress MissingFile */
 require dirname(__DIR__) . '/core/bootstrap.php';
 
-/** @var \modX $modx */
-if (isset($modx)) {
-    (new MXRVX\Telegram\Bot\Console\Console(new MXRVX\Telegram\Bot\App($modx)))->run();
-}
+(new MXRVX\Telegram\Bot\Console\Console($container))->run();

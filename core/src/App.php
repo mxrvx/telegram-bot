@@ -34,7 +34,6 @@ class App extends Telegram
     public function __construct(public \modX $modx)
     {
         $this->config = Config::make($modx->config);
-        $this->loadModelsWithNamespace();
         $this->addListenerClasses([MessageListener::class, ChatMemberListener::class]);
 
         if ((bool) $this->config->getSettingValue('log_active')) {
@@ -52,6 +51,16 @@ class App extends Telegram
 
         parent::__construct((string) $this->config->getSettingValue('bot_token'), (string) $this->config->getSettingValue('bot_username'));
         $this->addCommandsPath(__DIR__ . '/Commands');
+    }
+
+    public static function injectDependencies(\modX $modx): void
+    {
+        self::injectModelsWithNamespace($modx);
+    }
+
+    public static function getNamespaceCamelCase(): string
+    {
+        return \lcfirst(\str_replace(' ', '', \ucwords(\str_replace('-', ' ', App::NAMESPACE))));
     }
 
     public function getHookUrl(): string
@@ -136,36 +145,31 @@ class App extends Telegram
         return null;
     }
 
-    public function loadModelsWithNamespace(): void
+    private static function injectModelsWithNamespace(\modX $modx): void
     {
         $baseNamespace = \substr(self::class, 0, (int) \strrpos(self::class, '\\'));
         $modelNamespace = \sprintf('%s\Models\\', $baseNamespace);
         $modelPath = MODX_CORE_PATH . 'components/' . self::NAMESPACE . '/src/Models/' . self::NAMESPACE . '/' . self::NAMESPACE . '/';
-        $modelPrefix = $this->namespaceToCamelCase(self::NAMESPACE);
+        $modelPrefix = self::getNamespaceCamelCase();
 
         /** @var array<int, class-string> $namespaceClasses */
         $namespaceClasses = ClassLister::findByRegex('/^' . \preg_quote($modelNamespace, '/') . '(?!.*_mysql$).+$/');
         foreach ($namespaceClasses as $namespaceClass) {
-            if (isset($this->modx->map[$namespaceClass])) {
+            if (isset($modx->map[$namespaceClass])) {
                 continue;
             }
 
             $shortClassName = \substr($namespaceClass, (int) \strrpos($namespaceClass, '\\') + 1);
             $legacyClassName = $modelPrefix . $shortClassName;
 
-            if (!isset($this->modx->map[$legacyClassName])) {
+            if (!isset($modx->map[$legacyClassName])) {
                 /** @psalm-suppress DeprecatedMethod */
-                $this->modx->loadClass($legacyClassName, $modelPath, true, false);
+                $modx->loadClass($legacyClassName, $modelPath, true, false);
             }
 
-            if (isset($this->modx->map[$legacyClassName])) {
-                $this->modx->map[$namespaceClass] = $this->modx->map[$legacyClassName];
+            if (isset($modx->map[$legacyClassName])) {
+                $modx->map[$namespaceClass] = $modx->map[$legacyClassName];
             }
         }
-    }
-
-    protected function namespaceToCamelCase(string $namespace): string
-    {
-        return \lcfirst(\str_replace(' ', '', \ucwords(\str_replace('-', ' ', $namespace))));
     }
 }

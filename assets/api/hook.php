@@ -1,19 +1,12 @@
 <?php
 
-use MXRVX\Telegram\Bot\App;
-
-$file = dirname(__DIR__,2) . '/core/bootstrap.php';
-if (file_exists($file)) {
-    require $file;
-} else {
-    exit('Could not load Bootstrap');
-}
-
 /** @var \modX $modx */
-$app = $modx->services[App::class] ??= new App($modx);
+/** @var \DI\Container $container */
+/** @psalm-suppress MissingFile */
+require dirname(__DIR__, 2) . '/core/bootstrap.php';
 
 try {
-    if ($app instanceof App) {
+    if ($app = $container->get(\MXRVX\Telegram\Bot\App::class)) {
         $app->handle();
     }
 } catch (Longman\TelegramBot\Exception\TelegramException $e) {
