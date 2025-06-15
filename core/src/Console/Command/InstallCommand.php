@@ -18,7 +18,7 @@ class InstallCommand extends Command
         $app = $this->app;
         $modx = $this->app->modx;
 
-        $srcPath = MODX_CORE_PATH . 'vendor/' . \preg_replace('/-/', '/', App::NAMESPACE, 1);
+        $srcPath = MODX_CORE_PATH . 'vendor/' . (string) \preg_replace('/-/', '/', App::NAMESPACE, 1);
         $corePath = MODX_CORE_PATH . 'components/' . App::NAMESPACE;
         if (!\is_dir($corePath)) {
             \symlink($srcPath . '/core', $corePath);
@@ -60,7 +60,7 @@ class InstallCommand extends Command
         }
 
         $schemaFile = $corePath . '/schema/' . App::NAMESPACE . '.mysql.schema.xml';
-        if (\file_get_contents($schemaFile)) {
+        if (\file_exists($schemaFile)) {
             $modx->addPackage(
                 App::NAMESPACE,
                 MODX_CORE_PATH . 'components/' . App::NAMESPACE . '/src/Models/' . App::NAMESPACE . '/',

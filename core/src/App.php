@@ -26,17 +26,19 @@ class App extends Telegram
     public SchemaConfigInterface $config;
 
     /** @var string[] */
-    protected array $listenerClasses = [];
+    protected static array $listenerClasses = [
+        MessageListener::class,
+        ChatMemberListener::class,
+    ];
 
     /** @var string[] */
-    protected array $callbackClasses = [];
+    protected static array $callbackClasses = [];
 
     public function __construct(public \modX $modx)
     {
         $this->config = Config::make($modx->config);
-        $this->addListenerClasses([MessageListener::class, ChatMemberListener::class]);
 
-        if ((bool) $this->config->getSettingValue('log_active')) {
+        if ($this->config->getSetting('log_active')?->getBoolValue()) {
             $dirLog = \dirname(__DIR__) . '/logs/';
             TelegramLog::initialize(
                 new Logger('telegram_bot', [
@@ -63,6 +65,40 @@ class App extends Telegram
         return \lcfirst(\str_replace(' ', '', \ucwords(\str_replace('-', ' ', App::NAMESPACE))));
     }
 
+    public static function addListenerClass(string $className): void
+    {
+        if (!\in_array($className, self::$listenerClasses, true)) {
+            self::$listenerClasses[] = $className;
+        }
+    }
+
+    /**
+     * @param class-string[] $classNames
+     */
+    public static function addListenerClasses(array $classNames): void
+    {
+        foreach ($classNames as $className) {
+            self::addListenerClass($className);
+        }
+    }
+
+    public static function addCallbackClass(string $className): void
+    {
+        if (!\in_array($className, self::$callbackClasses, true)) {
+            self::$callbackClasses[] = $className;
+        }
+    }
+
+    /**
+     * @param class-string[] $classNames
+     */
+    public static function addCallbackClasses(array $classNames): void
+    {
+        foreach ($classNames as $className) {
+            self::addCallbackClass($className);
+        }
+    }
+
     public function getHookUrl(): string
     {
         return (string) $this->config->getSettingValue('hook_url');
@@ -84,26 +120,9 @@ class App extends Telegram
         return parent::processUpdate($update);
     }
 
-    public function addListenerClass(string $className): void
-    {
-        if (!\in_array($className, $this->listenerClasses, true)) {
-            $this->listenerClasses[] = $className;
-        }
-    }
-
-    /**
-     * @param class-string[] $classNames
-     */
-    public function addListenerClasses(array $classNames): void
-    {
-        foreach ($classNames as $className) {
-            $this->addListenerClass($className);
-        }
-    }
-
     public function handleListeners(?Update $update = null): ?ServerResponse
     {
-        foreach ($this->listenerClasses as $class) {
+        foreach (self::$listenerClasses as $class) {
             if (\is_a($class, ListenerInterface::class, true)) {
                 $listener = new $class($this, $update);
                 $listener->execute();
@@ -113,26 +132,9 @@ class App extends Telegram
         return null;
     }
 
-    public function addCallbackClass(string $className): void
-    {
-        if (!\in_array($className, $this->callbackClasses, true)) {
-            $this->callbackClasses[] = $className;
-        }
-    }
-
-    /**
-     * @param class-string[] $classNames
-     */
-    public function addCallbackClasses(array $classNames): void
-    {
-        foreach ($classNames as $className) {
-            $this->addCallbackClass($className);
-        }
-    }
-
     public function handleCallbacks(?Update $update = null): ?ServerResponse
     {
-        foreach ($this->callbackClasses as $class) {
+        foreach (self::$callbackClasses as $class) {
             if (\is_a($class, CallbackInterface::class, true)) {
                 $callback = new $class($this, $update);
                 $response = $callback->execute();
