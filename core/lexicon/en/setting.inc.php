@@ -5,6 +5,9 @@ declare(strict_types=1);
 /** @psalm-suppress MissingFile */
 require_once MODX_CORE_PATH . 'vendor/autoload.php';
 
+use MXRVX\Telegram\Bot\App;
+use MXRVX\Telegram\Bot\Tools\Lexicon;
+
 /** @var array<array-key, array<array-key,string>|string> $_tmp */
 $_tmp = [
     'bot_token' => 'Api ключ бота',
@@ -18,7 +21,7 @@ $_tmp = [
 ];
 
 /** @var array<array-key, string> $_tmp */
-$_tmp = \MXRVX\Telegram\Bot\Tools\Lexicon::flatten($_tmp, 'setting_' . \MXRVX\Telegram\Bot\App::NAMESPACE);
+$_tmp = Lexicon::make($_tmp, 'setting_' . App::NAMESPACE);
 
 /** @var array<array-key, string> $_lang */
 if (isset($_lang)) {

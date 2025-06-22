@@ -10,7 +10,7 @@ try {
         $app->handle();
     }
 } catch (Longman\TelegramBot\Exception\TelegramException $e) {
-    $modx->log(\modX::LOG_LEVEL_ERROR, \sprintf('Error: %s', $e->getMessage()));
+    $modx->log(\modX::LOG_LEVEL_ERROR, \sprintf("\nError: %s\nFile: %s", $e->getMessage(), $e->getFile()));
 } catch (Throwable $e) {
-    $modx->log(\modX::LOG_LEVEL_ERROR, \sprintf('Error: %s File: %s', $e->getMessage(), $e->getFile()));
+    $modx->log(\modX::LOG_LEVEL_ERROR, \sprintf("\nError: %s\nFile: %s", $e->getMessage(), $e->getFile()));
 }

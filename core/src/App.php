@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MXRVX\Telegram\Bot;
 
+use Longman\TelegramBot\Commands\Command;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Exception\TelegramException;
@@ -15,8 +16,6 @@ use Monolog\Level;
 use Monolog\Logger;
 use MXRVX\Autoloader\ClassLister;
 use MXRVX\Schema\System\Settings\SchemaConfigInterface;
-use MXRVX\Telegram\Bot\Listeners\ChatMemberListener;
-use MXRVX\Telegram\Bot\Listeners\MessageListener;
 
 /** @psalm-suppress PropertyNotSetInConstructor */
 class App extends Telegram
@@ -27,8 +26,8 @@ class App extends Telegram
 
     /** @var string[] */
     protected static array $listenerClasses = [
-        MessageListener::class,
-        ChatMemberListener::class,
+        Listeners\MessageListener::class,
+        Listeners\ChatMemberListener::class,
     ];
 
     /** @var string[] */
@@ -120,28 +119,58 @@ class App extends Telegram
         return parent::processUpdate($update);
     }
 
-    public function handleListeners(?Update $update = null): ?ServerResponse
+    public function handleCallbacks(?Update $update = null): ?ServerResponse
     {
-        foreach (self::$listenerClasses as $class) {
-            if (\is_a($class, ListenerInterface::class, true)) {
-                $listener = new $class($this, $update);
-                $listener->execute();
+        foreach (self::$callbackClasses as $class) {
+            if (\is_a($class, CallbackInterface::class, true)) {
+                try {
+                    $callback = new $class($this, $update);
+                    $response = $callback->execute();
+                    if ($response instanceof ServerResponse) {
+                        return $response;
+                    }
+                } catch (Exceptions\CallbackNothingToHandleException $e) {
+                } catch (\Throwable $e) {
+                    TelegramLog::error($e->getMessage(), [$e->getFile()]);
+                }
             }
         }
 
         return null;
     }
 
-    public function handleCallbacks(?Update $update = null): ?ServerResponse
+    public function handleListeners(?Update $update = null): ?ServerResponse
     {
-        foreach (self::$callbackClasses as $class) {
-            if (\is_a($class, CallbackInterface::class, true)) {
-                $callback = new $class($this, $update);
-                $response = $callback->execute();
-                if ($response instanceof ServerResponse) {
-                    return $response;
+        foreach (self::$listenerClasses as $class) {
+            if (\is_a($class, ListenerInterface::class, true)) {
+                try {
+                    $listener = new $class($this, $update);
+                    $listener->execute();
+                } catch (Exceptions\ListenerNothingToHandleException $e) {
+                } catch (\Throwable $e) {
+                    TelegramLog::error($e->getMessage(), [$e->getFile()]);
                 }
             }
+        }
+
+        return null;
+    }
+
+    public function executeCommandInstance(Command $command, Update $update): ?ServerResponse
+    {
+        try {
+            if (!$command->isEnabled()) {
+                return null;
+            }
+
+            $response = $command->setUpdate($update)->preExecute();
+            $this->last_command_response = $response;
+
+            return $response;
+
+        } catch (Exceptions\CommandNothingToHandleException $e) {
+        } catch (\Throwable $e) {
+            TelegramLog::error($e->getMessage(), [$e->getFile()]);
         }
 
         return null;
