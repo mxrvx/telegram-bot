@@ -102,7 +102,7 @@ class User extends Model
         return Caster::int($value);
     }
 
-    public function getId(): string
+    public function getId(): int
     {
         return $this->getFieldValue(self::FIELD_ID);
     }
@@ -127,12 +127,12 @@ class User extends Model
         return $this->getFieldValue(self::FIELD_STATUS);
     }
 
-    public function getCreatedAt(): string
+    public function getCreatedAt(): int
     {
         return $this->getFieldValue(self::FIELD_CREATED_AT);
     }
 
-    public function getUpdatedAt(): string
+    public function getUpdatedAt(): int
     {
         return $this->getFieldValue(self::FIELD_UPDATED_AT);
     }
