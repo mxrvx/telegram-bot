@@ -25,10 +25,7 @@ class App extends Telegram
     public SchemaConfigInterface $config;
 
     /** @var string[] */
-    protected static array $listenerClasses = [
-        Listeners\MessageListener::class,
-        Listeners\ChatMemberListener::class,
-    ];
+    protected static array $listenerClasses = [];
 
     /** @var string[] */
     protected static array $callbackClasses = [];
@@ -57,6 +54,15 @@ class App extends Telegram
     public static function injectDependencies(\modX $modx): void
     {
         self::injectModelsWithNamespace($modx);
+        self::injectTelegram($modx);
+    }
+
+    public static function injectTelegram(\modX $modx): void
+    {
+        self::addListenerClasses([
+            Listeners\MessageListener::class,
+            Listeners\ChatMemberListener::class,
+        ]);
     }
 
     public static function getNamespaceCamelCase(): string
@@ -185,6 +191,9 @@ class App extends Telegram
 
         /** @var array<int, class-string> $namespaceClasses */
         $namespaceClasses = ClassLister::findByRegex('/^' . \preg_quote($modelNamespace, '/') . '(?!.*_mysql$).+$/');
+        $namespaceClasses = \array_filter($namespaceClasses, static function ($class) {
+            return !\str_ends_with($class, 'Model');
+        });
         foreach ($namespaceClasses as $namespaceClass) {
             if (isset($modx->map[$namespaceClass])) {
                 continue;

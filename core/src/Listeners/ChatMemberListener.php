@@ -7,18 +7,14 @@ namespace MXRVX\Telegram\Bot\Listeners;
 use Longman\TelegramBot\Entities\ChatMemberUpdated;
 use MXRVX\Telegram\Bot\Models\User;
 
-/**
- * @psalm-import-type UserArrayStructure from User
- */
 class ChatMemberListener extends UserListener
 {
     public function execute(): void
     {
-        $entity = $this->getMyChatMember();
+        $chatMember = $this->getMyChatMember();
 
-        if ($entity && $data = $this->getUserDataFromMyChatMember($entity)) {
+        if ($chatMember && $data = $this->getUserDataFromMyChatMember($chatMember)) {
             if ($user = $this->getUser($data)) {
-                $user->fromArray($data, '', true, true);
                 $user->save();
             }
         }
@@ -26,13 +22,10 @@ class ChatMemberListener extends UserListener
 
     /**
      * Extract user data from ChatMemberUpdated entity
-     *
-     * @return UserArrayStructure|null
-     * @psalm-return UserArrayStructure|null
      */
     public function getUserDataFromMyChatMember(ChatMemberUpdated $chatMember): ?array
     {
-        return $this->extractUserData(
+        return $this->getUserData(
             $chatMember->getFrom(),
             $chatMember->getNewChatMember()->getStatus(),
         );

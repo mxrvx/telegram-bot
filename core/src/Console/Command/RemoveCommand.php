@@ -33,6 +33,7 @@ class RemoveCommand extends Command
             $output->writeln(\sprintf('<info>Removed namespace `%s`</info>', App::NAMESPACE));
         }
 
+        $modx->getCacheManager()->refresh();
         $output->writeln('<info>Cleared MODX cache</info>');
 
         return Command::SUCCESS;
