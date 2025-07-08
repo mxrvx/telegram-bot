@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MXRVX\Telegram\Bot\Listeners;
 
 use Longman\TelegramBot\Entities\ChatMemberUpdated;
-use MXRVX\Telegram\Bot\Models\User;
 
 class ChatMemberListener extends UserListener
 {
@@ -13,10 +12,9 @@ class ChatMemberListener extends UserListener
     {
         $chatMember = $this->getMyChatMember();
 
-        if ($chatMember && $data = $this->getUserDataFromMyChatMember($chatMember)) {
-            if ($user = $this->getUser($data)) {
-                $user->save();
-            }
+        $data = $this->getUserDataFromMyChatMember($chatMember);
+        if ($data && $user = $this->getUser($data)) {
+            $user->save();
         }
     }
 
@@ -25,9 +23,6 @@ class ChatMemberListener extends UserListener
      */
     public function getUserDataFromMyChatMember(ChatMemberUpdated $chatMember): ?array
     {
-        return $this->getUserData(
-            $chatMember->getFrom(),
-            $chatMember->getNewChatMember()->getStatus(),
-        );
+        return $this->getUserData($chatMember->getFrom(), $chatMember->getNewChatMember()->getStatus());
     }
 }

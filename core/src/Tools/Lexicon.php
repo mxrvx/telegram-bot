@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace MXRVX\Telegram\Bot\Tools;
 
-use MXRVX\Autoloader\App as Autoloader;
 use MXRVX\Telegram\Bot\App;
 
 class Lexicon
@@ -118,6 +117,6 @@ class Lexicon
 
     protected static function modx(): \modX
     {
-        return self::$modx ??= Autoloader::getModxInstance();
+        return self::$modx ??= \MXRVX\Autoloader\App::modx();
     }
 }

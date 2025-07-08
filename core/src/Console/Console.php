@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace MXRVX\Telegram\Bot\Console;
 
 use DI\Container;
+use MXRVX\ORM\Console\Command\Migration\MigrationDownCommand;
+use MXRVX\ORM\Console\Command\Migration\MigrationUpCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\ListCommand;
 use MXRVX\Telegram\Bot\App;
@@ -26,6 +28,9 @@ class Console extends Application
             new InstallCommand($this->container),
             new RemoveCommand($this->container),
             new HookCommand($this->container),
+
+            new MigrationUpCommand($this->container),
+            new MigrationDownCommand($this->container),
         ];
     }
 }
