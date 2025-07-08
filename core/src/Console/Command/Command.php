@@ -9,6 +9,9 @@ use DI\DependencyException;
 use DI\NotFoundException;
 use MXRVX\Telegram\Bot\App;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Symfony\Component\Console\Exception\CommandNotFoundException;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class Command extends SymfonyCommand
 {
@@ -27,5 +30,26 @@ abstract class Command extends SymfonyCommand
         /** @var App $this->app */
         $this->app = $this->container->get(App::class);
         parent::__construct($name);
+    }
+
+    protected function runCommand(string $command, array $params, OutputInterface $output, bool $interactive = false): int
+    {
+        $application = $this->getApplication();
+        if (!$application) {
+            $output->writeln('<error>The Symfony Console application could not be received.</error>');
+            return self::FAILURE;
+        }
+
+        try {
+            $commandInstance = $application->find($command);
+        } catch (CommandNotFoundException $e) {
+            $output->writeln("<error>Command '{$command}' not found.</error>");
+            return self::FAILURE;
+        }
+
+        $input = new ArrayInput(\array_merge(['command' => $command], $params));
+        $input->setInteractive($interactive);
+
+        return $commandInstance->run($input, $output);
     }
 }

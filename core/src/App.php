@@ -14,7 +14,6 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
-use MXRVX\Autoloader\ClassLister;
 use MXRVX\Schema\System\Settings\SchemaConfigInterface;
 
 /** @psalm-suppress PropertyNotSetInConstructor */
@@ -53,7 +52,6 @@ class App extends Telegram
 
     public static function injectDependencies(\modX $modx): void
     {
-        self::injectModelsWithNamespace($modx);
         self::injectTelegram($modx);
     }
 
@@ -180,36 +178,5 @@ class App extends Telegram
         }
 
         return null;
-    }
-
-    private static function injectModelsWithNamespace(\modX $modx): void
-    {
-        $baseNamespace = \substr(self::class, 0, (int) \strrpos(self::class, '\\'));
-        $modelNamespace = \sprintf('%s\Models\\', $baseNamespace);
-        $modelPath = MODX_CORE_PATH . 'components/' . self::NAMESPACE . '/src/Models/' . self::NAMESPACE . '/' . self::NAMESPACE . '/';
-        $modelPrefix = self::getNamespaceCamelCase();
-
-        /** @var array<int, class-string> $namespaceClasses */
-        $namespaceClasses = ClassLister::findByRegex('/^' . \preg_quote($modelNamespace, '/') . '(?!.*_mysql$).+$/');
-        $namespaceClasses = \array_filter($namespaceClasses, static function ($class) {
-            return !\str_ends_with($class, 'Model');
-        });
-        foreach ($namespaceClasses as $namespaceClass) {
-            if (isset($modx->map[$namespaceClass])) {
-                continue;
-            }
-
-            $shortClassName = \substr($namespaceClass, (int) \strrpos($namespaceClass, '\\') + 1);
-            $legacyClassName = $modelPrefix . $shortClassName;
-
-            if (!isset($modx->map[$legacyClassName])) {
-                /** @psalm-suppress DeprecatedMethod */
-                $modx->loadClass($legacyClassName, $modelPath, true, false);
-            }
-
-            if (isset($modx->map[$legacyClassName])) {
-                $modx->map[$namespaceClass] = $modx->map[$legacyClassName];
-            }
-        }
     }
 }

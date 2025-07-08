@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use MXRVX\ORM\EntityPathConfig;
+use MXRVX\ORM\Tools\Packages;
+use MXRVX\Telegram\Bot\App;
+
 if (!\defined('MODX_CORE_PATH')) {
 
     $dir = __DIR__;
@@ -41,9 +45,14 @@ if (!isset($modx)) {
     $modx->initialize();
 }
 
-\MXRVX\Telegram\Bot\App::injectDependencies($modx);
+App::injectDependencies($modx);
 /** @var \DI\Container $container */
-$container = $container ?? \MXRVX\Autoloader\App::getInstance($modx)->getContainer();
-if (!$container->has(\MXRVX\Telegram\Bot\App::class)) {
-    $container->set(\MXRVX\Telegram\Bot\App::class, \DI\autowire());
+$container = $container ?? \MXRVX\Autoloader\App::container();
+
+if ($entityPathConfig = $container->get(EntityPathConfig::class)) {
+    $entityPathConfig->addPath(App::NAMESPACE, Packages::getVendorEntitiesDirectory(App::NAMESPACE));
+}
+
+if (!$container->has(App::class)) {
+    $container->set(App::class, \DI\autowire());
 }

@@ -21,14 +21,16 @@
         "chat": "https://t.me/mxrvx_official"
     },
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.2",
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
         "peppeocchi/php-cron-scheduler": "^4.0",
         "longman/telegram-bot": "*",
         "monolog/monolog": "^3.9",
-        "mxrvx/autoloader": "^0.1.6"
+        "mxrvx/autoloader": "^0.1.13",
+        "mxrvx/orm": "^0.1.5",
+        "mxrvx/orm-modx-entities": "^0.1.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",

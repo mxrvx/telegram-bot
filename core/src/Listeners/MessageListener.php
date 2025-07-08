@@ -13,10 +13,9 @@ class MessageListener extends UserListener
     {
         $message = $this->getMessage();
 
-        if ($message && $data = $this->getUserDataFromMessage($message)) {
-            if ($user = $this->getUser($data)) {
-                $user->save();
-            }
+        $data = $this->getUserDataFromMessage($message);
+        if ($data && $user = $this->getUser($data)) {
+            $user->save();
         }
     }
 
@@ -25,8 +24,6 @@ class MessageListener extends UserListener
      */
     public function getUserDataFromMessage(Message $message): ?array
     {
-        return $this->getUserData(
-            $message->getFrom(),
-        );
+        return $this->getUserData($message->getFrom());
     }
 }
