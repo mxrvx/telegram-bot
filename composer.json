@@ -41,8 +41,7 @@
     "autoload": {
         "psr-4": {
             "MXRVX\\Telegram\\Bot\\": "core/src/"
-        },
-        "classmap": ["core/src/"]
+        }
     },
     "bin": [
         "bin/mxrvx-telegram-bot"
