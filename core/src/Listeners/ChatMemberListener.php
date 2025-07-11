@@ -10,7 +10,10 @@ class ChatMemberListener extends UserListener
 {
     public function execute(): void
     {
-        $chatMember = $this->getMyChatMember();
+        /** @psalm-suppress DocblockTypeContradiction */
+        if (!$chatMember = $this->getMyChatMember()) {
+            return;
+        }
 
         $data = $this->getUserDataFromMyChatMember($chatMember);
         if ($data && $user = $this->getUser($data)) {

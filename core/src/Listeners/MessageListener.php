@@ -11,7 +11,10 @@ class MessageListener extends UserListener
 {
     public function execute(): void
     {
-        $message = $this->getMessage();
+        /** @psalm-suppress DocblockTypeContradiction */
+        if (!$message = $this->getMessage()) {
+            return;
+        }
 
         $data = $this->getUserDataFromMessage($message);
         if ($data && $user = $this->getUser($data)) {
