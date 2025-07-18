@@ -22,11 +22,12 @@ class CallbackqueryCommand extends \Longman\TelegramBot\Commands\SystemCommands\
             if (\strpos($command, '/') === 0) {
                 return $app->executeCommand(\substr($command, 1));
             }
+            return Request::emptyResponse();
         }
 
         return Request::sendMessage([
             'chat_id' => $message->getChat()->getId(),
-            'text' => $data,
+            'text' => $callback->getData(),
         ]);
     }
 }
